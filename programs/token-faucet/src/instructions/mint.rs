@@ -10,7 +10,7 @@ use {
 #[instruction(token_symbol: String)]
 pub struct MintToken<'info> {
     #[account(mut)]
-    pub payer: Signer<'info>,
+    pub signer: Signer<'info>,
 
     // Mint account address is a PDA
     #[account(
@@ -24,9 +24,9 @@ pub struct MintToken<'info> {
     // This is the account that will hold the minted tokens
     #[account(
         init_if_needed,
-        payer = payer,
+        payer = signer,
         associated_token::mint = mint_account,
-        associated_token::authority = payer,
+        associated_token::authority = signer,
     )]
     pub associated_token_account: Account<'info, TokenAccount>,
 
