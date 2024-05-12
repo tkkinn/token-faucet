@@ -1,4 +1,3 @@
-"use strict";
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
@@ -16,37 +15,17 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var __async = (__this, __arguments, generator) => {
-  return new Promise((resolve, reject) => {
-    var fulfilled = (value) => {
-      try {
-        step(generator.next(value));
-      } catch (e) {
-        reject(e);
-      }
-    };
-    var rejected = (value) => {
-      try {
-        step(generator.throw(value));
-      } catch (e) {
-        reject(e);
-      }
-    };
-    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
-    step((generator = generator.apply(__this, __arguments)).next());
-  });
-};
 
 // src/index.ts
 var src_exports = {};
 __export(src_exports, {
-  faucetClient: () => faucetClient
+  FaucetClient: () => FaucetClient
 });
 module.exports = __toCommonJS(src_exports);
 
 // src/faucetClient.ts
-var import_anchor2 = require("@coral-xyz/anchor");
-var import_web32 = require("@solana/web3.js");
+var import_anchor = require("@coral-xyz/anchor");
+var import_web3 = require("@solana/web3.js");
 
 // src/idl/token_faucet.json
 var token_faucet_default = {
@@ -238,36 +217,12 @@ var token_faucet_default = {
 
 // src/faucetClient.ts
 var import_spl_token = require("@solana/spl-token");
-
-// src/helper.ts
-var import_anchor = require("@coral-xyz/anchor");
-var import_web3 = require("@solana/web3.js");
-function v0_pack(instructions, payer, signer, provider) {
-  return __async(this, null, function* () {
-    const blockhash = yield provider.connection.getLatestBlockhash().then((res) => res.blockhash);
-    const messageV0 = new import_web3.TransactionMessage({
-      payerKey: payer.publicKey,
-      recentBlockhash: blockhash,
-      instructions
-    }).compileToV0Message();
-    const transaction = new import_web3.VersionedTransaction(messageV0);
-    if (payer instanceof import_anchor.Wallet)
-      transaction.sign([payer.payer]);
-    else if (payer instanceof import_web3.Keypair)
-      transaction.sign([payer]);
-    if (signer)
-      transaction.sign([signer]);
-    return transaction;
-  });
-}
-
-// src/faucetClient.ts
-var faucetClient = class {
+var FaucetClient = class {
   constructor(config) {
     if (!config.program) {
       const a = JSON.stringify(token_faucet_default);
       const token_faucet_idl = JSON.parse(a);
-      this.program = new import_anchor2.Program(token_faucet_idl);
+      this.program = new import_anchor.Program(token_faucet_idl);
     } else {
       this.program = config.program;
     }
@@ -275,57 +230,73 @@ var faucetClient = class {
     this.wallet = config.wallet;
     this.opts = config.opts;
   }
-  buildMintTokenTx(token_symbol, amount) {
-    return __async(this, null, function* () {
-      const signer_ata = (0, import_spl_token.getAssociatedTokenAddressSync)(
-        import_web32.PublicKey.findProgramAddressSync([Buffer.from("mint"), Buffer.from(token_symbol)], this.program.programId)[0],
-        this.wallet.publicKey
-      );
-      const tx = yield this.program.methods.mintToken(
-        token_symbol,
-        new import_anchor2.BN(amount)
-      ).accounts({
-        signer: this.wallet.publicKey,
-        associatedTokenAccount: signer_ata
-      }).instruction();
-      return tx;
-    });
+  async buildCreateTokenTx(token_symbol, token_decimals, token_name, token_uri) {
+    const tx = await this.program.methods.createToken(
+      token_symbol,
+      token_decimals,
+      token_name,
+      token_uri
+    ).accounts({
+      signer: this.wallet.publicKey
+    }).instruction();
+    return tx;
   }
-  createToken(token_symbol, token_decimals, token_name, token_uri) {
-    return __async(this, null, function* () {
-      const createToken = yield this.program.methods.createToken(
-        token_symbol,
-        token_decimals,
-        token_name,
-        token_uri
-      ).accounts({
-        signer: this.wallet.publicKey
-      }).instruction();
-      const transaction = yield v0_pack([createToken], this.wallet, null, this.provider);
-      const txId = yield this.provider.connection.sendTransaction(transaction, this.opts);
-      return txId;
-    });
+  async buildMintTokenTx(token_symbol, amount) {
+    const signer_ata = (0, import_spl_token.getAssociatedTokenAddressSync)(
+      import_web3.PublicKey.findProgramAddressSync([Buffer.from("mint"), Buffer.from(token_symbol)], this.program.programId)[0],
+      this.wallet.publicKey
+    );
+    const tx = await this.program.methods.mintToken(
+      token_symbol,
+      new import_anchor.BN(amount)
+    ).accounts({
+      signer: this.wallet.publicKey,
+      associatedTokenAccount: signer_ata
+    }).instruction();
+    return tx;
   }
-  mintToken(token_symbol, amount) {
-    return __async(this, null, function* () {
-      const signer_ata = (0, import_spl_token.getAssociatedTokenAddressSync)(
-        import_web32.PublicKey.findProgramAddressSync([Buffer.from("mint"), Buffer.from(token_symbol)], this.program.programId)[0],
-        this.wallet.publicKey
-      );
-      const mintToken = yield this.program.methods.mintToken(
-        token_symbol,
-        new import_anchor2.BN(amount)
-      ).accounts({
-        signer: this.wallet.publicKey,
-        associatedTokenAccount: signer_ata
-      }).instruction();
-      const transaction = yield v0_pack([mintToken], this.wallet, null, this.provider);
-      const txId = yield this.provider.connection.sendTransaction(transaction, this.opts);
-      return txId;
-    });
+  async createToken(token_symbol, token_decimals, token_name, token_uri) {
+    const createToken = await this.program.methods.createToken(
+      token_symbol,
+      token_decimals,
+      token_name,
+      token_uri
+    ).accounts({
+      signer: this.wallet.publicKey
+    }).instruction();
+    const transaction = await this.v0_pack([createToken]);
+    const txId = await this.provider.connection.sendTransaction(transaction, this.opts);
+    return txId;
+  }
+  async mintToken(token_symbol, amount) {
+    const signer_ata = (0, import_spl_token.getAssociatedTokenAddressSync)(
+      import_web3.PublicKey.findProgramAddressSync([Buffer.from("mint"), Buffer.from(token_symbol)], this.program.programId)[0],
+      this.wallet.publicKey
+    );
+    const mintToken = await this.program.methods.mintToken(
+      token_symbol,
+      new import_anchor.BN(amount)
+    ).accounts({
+      signer: this.wallet.publicKey,
+      associatedTokenAccount: signer_ata
+    }).signers([this.wallet.payer]).instruction();
+    const transaction = await this.v0_pack([mintToken]);
+    const txId = await this.provider.connection.sendTransaction(transaction, this.opts);
+    return txId;
+  }
+  async v0_pack(instructions) {
+    const blockhash = await this.provider.connection.getLatestBlockhash().then((res) => res.blockhash);
+    const messageV0 = new import_web3.TransactionMessage({
+      payerKey: this.wallet.publicKey,
+      recentBlockhash: blockhash,
+      instructions
+    }).compileToV0Message();
+    const transaction = new import_web3.VersionedTransaction(messageV0);
+    transaction.sign([this.wallet.payer]);
+    return transaction;
   }
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  faucetClient
+  FaucetClient
 });

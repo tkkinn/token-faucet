@@ -1,8 +1,8 @@
 {
-  "name": "token-faucet-sdk",
-  "version": "1.0.0",
+  "name": "@tkkinn/token-faucet-sdk",
+  "version": "1.0.1",
   "description": "This a SDK for solana token faucet",
-  "main": "index.js",
+  "main": "./src/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsup ./src/index.ts"
