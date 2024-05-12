@@ -105,6 +105,10 @@ export class FaucetClient {
 		return txId;
 	}
 
+	public findTokenMintAddress(token_symbol: string) {
+		return PublicKey.findProgramAddressSync([Buffer.from("mint"), Buffer.from(token_symbol)], this.program.programId)[0];
+	}
+
 	async v0_pack(instructions: TransactionInstruction[]) {
 		const blockhash = await this.provider.connection
         .getLatestBlockhash()

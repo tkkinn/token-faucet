@@ -284,6 +284,9 @@ var FaucetClient = class {
     const txId = await this.provider.connection.sendTransaction(transaction, this.opts);
     return txId;
   }
+  findTokenMintAddress(token_symbol) {
+    return import_web3.PublicKey.findProgramAddressSync([Buffer.from("mint"), Buffer.from(token_symbol)], this.program.programId)[0];
+  }
   async v0_pack(instructions) {
     const blockhash = await this.provider.connection.getLatestBlockhash().then((res) => res.blockhash);
     const messageV0 = new import_web3.TransactionMessage({
