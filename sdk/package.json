@@ -1,7 +1,7 @@
 {
-  "name": "sdk",
+  "name": "token-faucet-sdk",
   "version": "1.0.0",
-  "description": "",
+  "description": "This a SDK for solana token faucet",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -15,7 +15,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "=0.30.0",
+    "@coral-xyz/anchor": "^0.30.0",
     "@solana/spl-token": "^0.4.6",
     "@solana/web3.js": "^1.91.8"
   }
